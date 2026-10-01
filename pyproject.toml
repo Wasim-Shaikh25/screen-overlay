@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-overlay"
+version = "1.0.2"
+description = "Floating desktop AI assistant with on-demand screen OCR, push-to-talk voice, and OpenAI reasoning."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "AI Overlay" }]
+keywords = ["ai", "overlay", "assistant", "ocr", "whisper", "openai", "tts"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: End Users/Desktop",
+]
+
+# Core runtime dependencies. These let `config`/`info` work and keep the base
+# install reasonable. The heavy ML/GUI stack is pulled in by default here too,
+# but can be reviewed via the [project.optional-dependencies] groups below.
+dependencies = [
+    "python-dotenv>=1.0.1",
+    "openai>=1.51.0",
+    "PyQt6>=6.7.1",
+    "mss>=9.0.1",
+    "sounddevice>=0.5.1",
+    "numpy>=2.1.0",
+    "edge-tts>=6.1.17",
+    "pynput>=1.7.7",
+    "keyring>=25.0.0",
+]
+
+[project.optional-dependencies]
+# OCR + local speech-to-text pull in large PyTorch wheels. Installing the
+# "full" extra enables Read Screen and local Whisper transcription.
+full = [
+    "easyocr>=1.7.2",
+    "openai-whisper>=20240930",
+    "scipy>=1.14.0",
+]
+
+[project.scripts]
+# Installs an `ai-overlay` command on the PATH.
+ai-overlay = "overlay.cli:main"
+
+[project.urls]
+Homepage = "https://example.com/ai-overlay"
+
+[tool.setuptools]
+packages = ["overlay"]

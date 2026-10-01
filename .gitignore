@@ -1,0 +1,31 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Build artifacts (the top-level build output; the hand-off wheel in
+# dist-bundle/ is kept intentionally for easy installation).
+/dist/
+/build/
+
+# App data
+data/*.db
+data/*.wav
+data/*.mp3
+data/screenshots/
+*.wav
+*.mp3
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,107 @@
+==============================================================
+  AI Overlay - a floating desktop AI assistant
+==============================================================
+
+A small always-on-top window that helps you summarize and reason
+about things you choose to share with it: on-screen text, your own
+voice, code, emails, and documents.
+
+
+--------------------------------------------------------------
+  WHAT YOU NEED FIRST
+--------------------------------------------------------------
+
+1) Python 3.11 or newer.
+   If you don't have it, download from https://www.python.org/downloads/
+   During installation, TICK the box "Add Python to PATH".
+
+2) An OpenAI API key (starts with "sk-").
+   Create one at https://platform.openai.com/api-keys
+   (The installer will ask you to paste it.)
+
+
+--------------------------------------------------------------
+  HOW TO INSTALL (one time)
+--------------------------------------------------------------
+
+Double-click:   install.bat
+
+It will:
+  - install the tool,
+  - ask you to paste your OpenAI API key (stored securely in
+    your Windows Credential Manager, not in a plain file),
+  - show you how to start it.
+
+The first install downloads some large components (for screen
+reading and voice) and may take several minutes.
+
+
+--------------------------------------------------------------
+  HOW TO START IT
+--------------------------------------------------------------
+
+Double-click:   AI-Overlay.bat
+
+(Or open a new terminal and type:  ai-overlay run)
+
+
+--------------------------------------------------------------
+  USING THE ASSISTANT
+--------------------------------------------------------------
+
+In the window: type a question and press Enter, or use the
+buttons: Read Screen, Talk, Clear. Drag the window to move it.
+
+Hotkeys (work anywhere while it is running):
+  Ctrl+Space      Show / hide the window
+  Ctrl+Shift+S    Read the screen and summarize it
+  Ctrl+Shift+T    Start / stop talking (voice input)
+  Esc             Hide the window
+
+
+--------------------------------------------------------------
+  HELPFUL COMMANDS (in a terminal)
+--------------------------------------------------------------
+
+  ai-overlay info          Show status and where things are stored
+  ai-overlay setup         Re-run the key setup
+  ai-overlay config        View current settings (key is hidden)
+  ai-overlay config --clear-key   Remove your saved key
+
+  Ask a one-shot question right from the terminal:
+    ai-overlay ask "explain this error"
+    ai-overlay ask "what's on my screen?" --screenshot
+
+  --screenshot takes ONE screenshot at that moment and sends the
+  image together with your question to the AI (vision). Without
+  it, the question is text-only. A screenshot is only ever taken
+  when you run this command or press a button - never on its own.
+
+
+--------------------------------------------------------------
+  PRIVACY & FAIR USE
+--------------------------------------------------------------
+
+This tool is for personal productivity. It only captures your
+screen or microphone when YOU trigger it (a button or hotkey).
+If you use the voice feature during a call, tell the other
+people, and follow your local laws and workplace policies.
+Your conversations are stored only on your own computer.
+
+
+--------------------------------------------------------------
+  TROUBLESHOOTING
+--------------------------------------------------------------
+
+- "Python was not found": install Python and tick "Add to PATH",
+  then run install.bat again.
+
+- "ai-overlay is not recognized": open a NEW terminal window
+  (the PATH updates only in new windows), or just use
+  AI-Overlay.bat.
+
+- No AI replies: run "ai-overlay info" and check the key is
+  configured; re-run "ai-overlay setup" if needed.
+
+- First screen-read or voice use is slow: it is downloading
+  models the first time only.
