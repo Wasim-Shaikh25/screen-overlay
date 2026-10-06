@@ -29,3 +29,8 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Web app
+web/node_modules/
+web/dist/
+web/public/tesseract/

@@ -9,6 +9,10 @@ apps (Chrome, VS Code, Teams, and so on).
 You set your OpenAI API key once; it is stored securely in your operating
 system's credential store and reused on every run.
 
+The same assistant is also available as a self-hosted web page in `web/`.
+That version keeps the API key in the browser for 7 days and is deployed with
+the root `Dockerfile`. The command-line tool below is unchanged.
+
 ---
 
 ## Table of contents
@@ -26,6 +30,7 @@ system's credential store and reused on every run.
 - [Build from source](#build-from-source)
 - [Project layout](#project-layout)
 - [Troubleshooting](#troubleshooting)
+- [Web app](#web-app)
 - [License](#license)
 
 ---
@@ -247,6 +252,9 @@ screen-overlay/
 │   ├── AI-Overlay.bat
 │   ├── READ-ME-FIRST.txt
 │   └── ai_overlay-*.whl
+├── Dockerfile              # Production image: build the web app, serve it with nginx
+├── docker-compose.yml      # Optional: docker compose up --build
+├── web/                    # Self-hosted browser version (see Web app below)
 └── overlay/
     ├── cli.py              # CLI: setup / config / models / model / ask / run / info
     ├── settings.py         # Persistent settings + keyring secure storage
@@ -280,6 +288,89 @@ screen-overlay/
   device is available.
 
 ---
+
+## Web app
+
+A browser version of the floating assistant, for hosting on your own server.
+The Python CLI stays available and is not required to run the site.
+
+The page is static. Nginx only serves files. The OpenAI API key is written to
+`localStorage` in the visitor's browser, with the time it was saved, and is
+removed after 7 days. Chat, vision, and transcription requests are made by the
+browser directly to `https://api.openai.com`. The key is not sent to, logged
+by, or stored on your server.
+
+### What it does
+
+- First screen asks for an OpenAI API key until a valid, unexpired key is
+  already in this browser. Saving a key checks it with OpenAI before storing
+  it. **Change key** removes it immediately.
+- Chat keeps the full conversation for the current page load. Refresh or
+  **Clear** starts over.
+- **Read screen** uses the browser screen picker, takes one frame, then stops
+  the share. Text is read in the browser with Tesseract.js (English) and sent
+  to the model to summarize.
+- **Screenshot** sends that frame, with the prompt you typed, to the vision
+  model.
+- **Talk** records the microphone until you stop, sends that clip to OpenAI
+  transcription (`whisper-1`), then asks the model.
+- **Voice** speaks replies with the browser's speech synthesis. It starts off
+  on every visit.
+- **Detach** moves the page into a small always-on-top window with the
+  Document Picture-in-Picture API (Chrome and Edge 116+). **Re-attach** puts
+  it back. Other browsers get a small popup and a note that always-on-top is
+  not supported.
+
+While the page or the detached window is focused, `Ctrl+Shift+S` reads the
+screen and `Ctrl+Shift+T` starts or stops the mic.
+
+### Differences from the CLI
+
+| Desktop CLI | Web app |
+| --- | --- |
+| Always-on-top Qt window | Document Picture-in-Picture in Chrome/Edge. Elsewhere, a normal popup. |
+| `mss` captures a monitor with no extra prompt | `getDisplayMedia` asks you to pick a screen or window, captures one frame, then stops. |
+| EasyOCR, languages you configure | Tesseract.js in the browser, English language data served by this site. |
+| Global hotkeys (`Ctrl+Space`, `Esc`, and the others) | Shortcuts work only while the overlay window is focused. |
+| Local Whisper, audio stays on the machine | Audio is sent to OpenAI transcription when you stop recording. |
+| Edge TTS voices | The browser's own voices. Still off until you enable Voice. |
+| API key in the OS credential store | API key in `localStorage` for 7 days, then the add-key screen returns. |
+| `ai-overlay ask` from the terminal | Use the page. The CLI command still works for the desktop install. |
+
+### Run it on your server
+
+From the repository root. The container listens on **port 8080**.
+
+```bash
+docker build -t ai-overlay .
+docker run --rm -p 8080:8080 ai-overlay
+```
+
+Open `http://<your-server>:8080`. A check is available at
+`http://<your-server>:8080/healthz`.
+
+Or use Compose, which publishes the same port:
+
+```bash
+docker compose up --build -d
+```
+
+The image is a multi-stage build: Node builds the static files, then nginx
+serves `web/dist`. It does not contain an API key and it does not proxy
+OpenAI.
+
+### Local development
+
+```bash
+cd web
+npm install
+npm test
+npm run dev
+```
+
+The dev server listens on port 5173. `npm run build` writes `web/dist/`.
+Production hosting should use the Docker image above so the Tesseract files
+are included the same way.
 
 ## License
 

@@ -1,0 +1,7 @@
+services:
+  overlay:
+    build: .
+    image: ai-overlay
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
