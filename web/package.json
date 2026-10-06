@@ -1,0 +1,22 @@
+{
+  "name": "ai-overlay-web",
+  "version": "1.0.2",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted web version of the AI Overlay assistant. The OpenAI API key stays in the browser.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "test": "node --experimental-strip-types --test --test-reporter spec src/*.test.ts",
+    "fetch-assets": "node scripts/fetch-tesseract-assets.mjs",
+    "postinstall": "node scripts/fetch-tesseract-assets.mjs"
+  },
+  "dependencies": {
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vite": "^6.3.5"
+  }
+}
