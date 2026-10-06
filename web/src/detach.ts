@@ -4,6 +4,23 @@ export function preferredDetachMode(hasDocumentPictureInPicture: boolean): Detac
   return hasDocumentPictureInPicture ? "pip" : "popup";
 }
 
+/**
+ * A real Picture-in-Picture window is compact. Some desktops report success
+ * but hand back a window the same size as the browser tab, which is not floating.
+ */
+export function pipWindowIsFloating(
+  pipWidth: number,
+  pipHeight: number,
+  openerWidth: number,
+  openerHeight: number,
+): boolean {
+  if (pipWidth < 240 || pipHeight < 280) return false;
+  const widthLikeOpener = Math.abs(pipWidth - openerWidth) < Math.max(80, openerWidth * 0.08);
+  const heightLikeOpener = Math.abs(pipHeight - openerHeight) < Math.max(80, openerHeight * 0.12);
+  const muchWiderThanRequested = pipWidth > DETACH_WIDTH + 120;
+  return !(widthLikeOpener && heightLikeOpener && muchWiderThanRequested);
+}
+
 export const DETACH_WIDTH = 420;
 export const DETACH_HEIGHT = 680;
 
@@ -67,43 +84,79 @@ function mountInto(from: Document, target: Document, app: HTMLElement): void {
  * browser supports it, otherwise into a small popup. `onReturned` runs after
  * the element is back in `home`.
  */
+let pictureInPictureUnusable = false;
+
+function openPopup(opener: Window): Window {
+  const popup = opener.open(
+    "",
+    "ai-overlay-detached",
+    `popup=yes,width=${DETACH_WIDTH},height=${DETACH_HEIGHT},left=80,top=80,resizable=yes`,
+  );
+  if (!popup) {
+    throw new Error(
+      "The browser blocked the popup. Allow popups for this site, then try Detach again.",
+    );
+  }
+  popup.document.open();
+  popup.document.write(
+    "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>AI Overlay</title></head><body></body></html>",
+  );
+  popup.document.close();
+  try {
+    popup.resizeTo(DETACH_WIDTH, DETACH_HEIGHT);
+    popup.moveTo(80, 80);
+  } catch {
+    /* Some browsers ignore scripted resize. The requested size is still a hint. */
+  }
+  return popup;
+}
+
 export async function detachElement(
   app: HTMLElement,
   home: HTMLElement,
   onReturned: (session: DetachedSession) => void,
 ): Promise<DetachedSession> {
   const opener = window;
-  const pip = pipApi(opener);
+  const pip = pictureInPictureUnusable ? null : pipApi(opener);
   let external: Window;
   let mode: DetachMode;
   let alwaysOnTop: boolean;
 
   if (pip) {
-    external = await pip.requestWindow({ width: DETACH_WIDTH, height: DETACH_HEIGHT });
-    mode = "pip";
-    alwaysOnTop = true;
-  } else {
-    const popup = opener.open(
-      "",
-      "ai-overlay-detached",
-      `popup=yes,width=${DETACH_WIDTH},height=${DETACH_HEIGHT},resizable=yes`,
-    );
-    if (!popup) {
+    let candidate: Window;
+    try {
+      candidate = await pip.requestWindow({ width: DETACH_WIDTH, height: DETACH_HEIGHT });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Could not open the floating window.";
+      throw new Error(message);
+    }
+    mountInto(opener.document, candidate.document, app);
+    await new Promise((resolve) => opener.setTimeout(resolve, 60));
+    if (
+      pipWindowIsFloating(
+        candidate.innerWidth,
+        candidate.innerHeight,
+        opener.innerWidth,
+        opener.innerHeight,
+      )
+    ) {
+      external = candidate;
+      mode = "pip";
+      alwaysOnTop = true;
+    } else {
+      if (!home.contains(app)) home.appendChild(app);
+      candidate.close();
+      pictureInPictureUnusable = true;
       throw new Error(
-        "The browser blocked the popup. Allow popups for this site, then try Detach again.",
+        "This browser didn't open an always-on-top window. Click Detach again to open a popup.",
       );
     }
-    popup.document.open();
-    popup.document.write(
-      "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>AI Overlay</title></head><body></body></html>",
-    );
-    popup.document.close();
-    external = popup;
+  } else {
+    external = openPopup(opener);
     mode = "popup";
     alwaysOnTop = false;
+    mountInto(opener.document, external.document, app);
   }
-
-  mountInto(opener.document, external.document, app);
 
   let settled = false;
   const session: DetachedSession = {

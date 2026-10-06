@@ -7,7 +7,7 @@ import {
   SYSTEM_PROMPT,
 } from "./conversation.ts";
 import { audioFilename, filterChatModels } from "./openai.ts";
-import { preferredDetachMode } from "./detach.ts";
+import { pipWindowIsFloating, preferredDetachMode } from "./detach.ts";
 
 test("text turns keep a system prompt and roll back a failed user turn", () => {
   const conversation = new Conversation();
@@ -73,4 +73,7 @@ test("transcription uploads use a filename OpenAI accepts", () => {
 test("detach prefers picture-in-picture and falls back to a popup", () => {
   assert.equal(preferredDetachMode(true), "pip");
   assert.equal(preferredDetachMode(false), "popup");
+  assert.equal(pipWindowIsFloating(420, 680, 1400, 900), true);
+  assert.equal(pipWindowIsFloating(1094, 784, 1094, 731), false);
+  assert.equal(pipWindowIsFloating(420, 680, 480, 700), true);
 });

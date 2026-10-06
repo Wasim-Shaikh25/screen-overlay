@@ -641,9 +641,6 @@ function button(text: string, kind?: "ghost"): HTMLButtonElement {
 }
 
 function describe(error: unknown, fallback = "Something went wrong."): string {
-  if (error instanceof DOMException && (error.name === "NotAllowedError" || error.name === "AbortError")) {
-    return "Permission was dismissed. Nothing was captured.";
-  }
   if (error instanceof Error && error.message) return error.message;
   return fallback;
 }

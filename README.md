@@ -319,7 +319,8 @@ by, or stored on your server.
 - **Detach** moves the page into a small always-on-top window with the
   Document Picture-in-Picture API (Chrome and Edge 116+). **Re-attach** puts
   it back. Other browsers get a small popup and a note that always-on-top is
-  not supported.
+  not supported. If a browser reports Picture-in-Picture but does not open a
+  separate window, click **Detach** again and the app opens a popup instead.
 
 While the page or the detached window is focused, `Ctrl+Shift+S` reads the
 screen and `Ctrl+Shift+T` starts or stops the mic.
